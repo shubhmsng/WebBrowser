@@ -8,13 +8,17 @@ import android.content.res.Configuration;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Environment;
+import android.os.Parcelable;
+import android.provider.MediaStore;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.webkit.ConsoleMessage;
 import android.webkit.DownloadListener;
+import android.webkit.ValueCallback;
 import android.webkit.WebChromeClient;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
@@ -23,6 +27,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import java.io.File;
 import java.util.concurrent.ExecutionException;
 
 public class MainActivity extends AppCompatActivity {
@@ -33,6 +38,13 @@ public class MainActivity extends AppCompatActivity {
     protected int i = 0;
     private ProgressDialog pd;
     private WebChromeClient mWebChromeClient;
+    final Activity activity = this;
+    public Uri imageUri;
+
+    private static final int FILECHOOSER_RESULTCODE   = 2888;
+    private ValueCallback<Uri> mUploadMessage;
+    private Uri mCapturedImageURI = null;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -123,7 +135,30 @@ public class MainActivity extends AppCompatActivity {
 
     public void load(String link){
 
-        web_view.setWebViewClient(new WebViewClient(){
+        web_view.getSettings().setJavaScriptEnabled(true);
+        web_view.getSettings().setLoadsImagesAutomatically(true);
+        web_view.getSettings().setDomStorageEnabled(true);
+        web_view.getSettings().setLoadsImagesAutomatically(true);
+        web_view.getSettings().setAllowFileAccess(true);
+        web_view.getSettings().setBuiltInZoomControls(true);
+        web_view.getSettings().setGeolocationEnabled(true);
+        web_view.getSettings().setUseWideViewPort(true);
+
+        web_view.getSettings().setPluginState(WebSettings.PluginState.ON);
+        web_view.setScrollBarStyle(View.SCROLLBARS_INSIDE_OVERLAY);
+        pd.show();
+        web_view.loadUrl(link);
+        web_view.requestFocus();
+        web_view.setDownloadListener(new DownloadListener() {
+            @Override
+            public void onDownloadStart(String url, String userAgent, String contentDisposition, String mimetype, long contentLength) {
+                Intent i = new Intent(Intent.ACTION_VIEW);
+                i.setData(Uri.parse(url));
+                startActivity(i);
+            }
+        });
+
+        web_view.setWebViewClient(new WebViewClient() {
 
                                       @Override
                                       public void onPageStarted(WebView view, String url, Bitmap favicon) {
@@ -144,36 +179,141 @@ public class MainActivity extends AppCompatActivity {
                                           // TODO Auto-generated method stub
                                           super.onLoadResource(view, url);
                                       }
+
                                       public boolean shouldOverrideUrlLoading(WebView view, String uri) {
                                           url.setText(uri.toString());
                                           return super.shouldOverrideUrlLoading(view, uri);
                                       }
+
                                   }
 
 
         );
 
-        mWebChromeClient = new WebChromeClient();
-        web_view.setWebChromeClient(mWebChromeClient);
-        web_view.getSettings().setJavaScriptEnabled(true);
-        web_view.getSettings().setLoadsImagesAutomatically(true);
-        web_view.getSettings().setDomStorageEnabled(true);
-        web_view.getSettings().setLoadsImagesAutomatically(true);
-        web_view.getSettings().setAllowFileAccess(true);
-        web_view.getSettings().setBuiltInZoomControls(true);
-        web_view.getSettings().setPluginState(WebSettings.PluginState.ON);
-        web_view.setScrollBarStyle(View.SCROLLBARS_INSIDE_OVERLAY);
-        pd.show();
-        web_view.loadUrl(link);
-        web_view.requestFocus();
-        web_view.setDownloadListener(new DownloadListener() {
-            @Override
-            public void onDownloadStart(String url, String userAgent, String contentDisposition, String mimetype, long contentLength) {
-                Intent i = new Intent(Intent.ACTION_VIEW);
-                i.setData(Uri.parse(url));
-                startActivity(i);
+        web_view.setWebChromeClient(new WebChromeClient() {
+
+            // openFileChooser for Android 3.0+
+            public void openFileChooser(ValueCallback<Uri> uploadMsg, String acceptType) {
+
+                // Update message
+                mUploadMessage = uploadMsg;
+
+                try {
+
+                    // Create AndroidExampleFolder at sdcard
+
+                    File imageStorageDir = new File(
+                            Environment.getExternalStoragePublicDirectory(
+                                    Environment.DIRECTORY_PICTURES)
+                            , "AndroidExampleFolder");
+
+                    if (!imageStorageDir.exists()) {
+                        // Create AndroidExampleFolder at sdcard
+                        imageStorageDir.mkdirs();
+                    }
+
+                    // Create camera captured image file path and name
+                    File file = new File(
+                            imageStorageDir + File.separator + "IMG_"
+                                    + String.valueOf(System.currentTimeMillis())
+                                    + ".jpg");
+
+                    mCapturedImageURI = Uri.fromFile(file);
+
+                    // Camera capture image intent
+                    final Intent captureIntent = new Intent(
+                            android.provider.MediaStore.ACTION_IMAGE_CAPTURE);
+
+                    captureIntent.putExtra(MediaStore.EXTRA_OUTPUT, mCapturedImageURI);
+
+                    Intent i = new Intent(Intent.ACTION_GET_CONTENT);
+                    i.addCategory(Intent.CATEGORY_OPENABLE);
+                    i.setType("image/*");
+
+                    // Create file chooser intent
+                    Intent chooserIntent = Intent.createChooser(i, "Image Chooser");
+
+                    // Set camera intent to file chooser
+                    chooserIntent.putExtra(Intent.EXTRA_INITIAL_INTENTS
+                            , new Parcelable[]{captureIntent});
+
+                    // On select image call onActivityResult method of activity
+                    startActivityForResult(chooserIntent, FILECHOOSER_RESULTCODE);
+
+                } catch (Exception e) {
+                    Toast.makeText(getBaseContext(), "Exception:" + e,
+                            Toast.LENGTH_LONG).show();
+                }
+
             }
-        });
+
+            // openFileChooser for Android < 3.0
+            public void openFileChooser(ValueCallback<Uri> uploadMsg) {
+                openFileChooser(uploadMsg, "");
+            }
+
+            //openFileChooser for other Android versions
+            public void openFileChooser(ValueCallback<Uri> uploadMsg,
+                                        String acceptType,
+                                        String capture) {
+
+                openFileChooser(uploadMsg, acceptType);
+            }
+
+
+            // The webPage has 2 filechoosers and will send a
+            // console message informing what action to perform,
+            // taking a photo or updating the file
+
+            public boolean onConsoleMessage(ConsoleMessage cm) {
+
+                onConsoleMessage(cm.message(), cm.lineNumber(), cm.sourceId());
+                return true;
+            }
+
+            public void onConsoleMessage(String message, int lineNumber, String sourceID) {
+                //Log.d("androidruntime", "Show console messages, Used for debugging: " + message);
+
+            }
+        });   // End setWebChromeClient
+    }
+
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode,
+                                    Intent intent) {
+
+        if(requestCode==FILECHOOSER_RESULTCODE)
+        {
+
+            if (null == this.mUploadMessage) {
+                return;
+
+            }
+
+            Uri result=null;
+
+            try{
+                if (resultCode != RESULT_OK) {
+
+                    result = null;
+
+                } else {
+
+                    // retrieve from the private variable if the intent is null
+                    result = intent == null ? mCapturedImageURI : intent.getData();
+                }
+            }
+            catch(Exception e)
+            {
+                Toast.makeText(getApplicationContext(), "activity :"+e,
+                        Toast.LENGTH_LONG).show();
+            }
+
+            mUploadMessage.onReceiveValue(result);
+            mUploadMessage = null;
+
+        }
 
     }
 }
