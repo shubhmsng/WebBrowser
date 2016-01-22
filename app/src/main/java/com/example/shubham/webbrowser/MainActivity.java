@@ -29,6 +29,7 @@ public class MainActivity extends AppCompatActivity {
     EditText url;
     WebView web_view;
     Button btn;
+    String Url;
     protected int i = 0;
     private ProgressDialog pd;
     private WebChromeClient mWebChromeClient;
@@ -46,45 +47,7 @@ public class MainActivity extends AppCompatActivity {
         btn = (Button)findViewById(R.id.button);
         pd = ProgressDialog.show(this, "Load", "Page Loading", true);
         if( i == 0){
-            web_view.setWebViewClient(new WebViewClient(){
-
-                                          @Override
-                                          public void onPageStarted(WebView view, String url, Bitmap favicon) {
-                                              super.onPageStarted(view, url, favicon);
-
-                                              System.out.println("your current url when webpage loading.." + url);
-                                          }
-
-                                          @Override
-                                          public void onPageFinished(WebView view, String url) {
-                                              System.out.println("your current url when webpage loading.. finish" + url);
-                                              super.onPageFinished(view, url);
-                                              pd.dismiss();
-                                          }
-
-                                          @Override
-                                          public void onLoadResource(WebView view, String url) {
-                                              // TODO Auto-generated method stub
-                                              super.onLoadResource(view, url);
-                                          }
-                                          @Override
-                                          public boolean shouldOverrideUrlLoading(WebView view, String uri) {
-                                              url.setText(uri.toString());
-                                              return super.shouldOverrideUrlLoading(view, uri);
-                                          }
-                                      }
-
-
-            );
-            mWebChromeClient = new WebChromeClient();
-            web_view.setWebChromeClient(mWebChromeClient);
-            web_view.getSettings().setJavaScriptEnabled(true);
-            web_view.getSettings().setLoadsImagesAutomatically(true);
-            web_view.getSettings().setBuiltInZoomControls(true);
-            web_view.setScrollBarStyle(View.SCROLLBARS_INSIDE_OVERLAY);
-            pd.show();
-            web_view.loadUrl("http://google.com");
-            web_view.requestFocus();
+            load("http://google.com");
         }
 
         btn.setOnClickListener(
@@ -92,76 +55,31 @@ public class MainActivity extends AppCompatActivity {
                     @Override
                     public void onClick(View v) {
                         i = 1;
-                        String Url;
+                        Url = "http://google.com";
                         String temp_url = url.getText().toString();
                         String[] u1 = temp_url.split("\\.");
                         try {
                             System.out.println(u1[1]);
-                            Url = "http://" + temp_url;
+
+                            if (u1[0].startsWith("http") || u1[0].startsWith("https")) {
+                                Url = temp_url;
+                            } else {
+                                Url = "http://" + temp_url;
+                            }
                         } catch (Exception e) {
                             Url = "http://google.com/search?q=" + temp_url;
                         }
-
-                        web_view.setWebViewClient(new WebViewClient(){
-
-                                                      @Override
-                                                      public void onPageStarted(WebView view, String url, Bitmap favicon) {
-                                                          super.onPageStarted(view, url, favicon);
-
-                                                          System.out.println("your current url when webpage loading.." + url);
-                                                      }
-
-                                                      @Override
-                                                      public void onPageFinished(WebView view, String url) {
-                                                          pd.dismiss();
-                                                          System.out.println("your current url when webpage loading.. finish" + url);
-                                                          super.onPageFinished(view, url);
-                                                      }
-
-                                                      @Override
-                                                      public void onLoadResource(WebView view, String url) {
-                                                          // TODO Auto-generated method stub
-                                                          super.onLoadResource(view, url);
-                                                      }
-                                                      public boolean shouldOverrideUrlLoading(WebView view, String uri) {
-                                                          url.setText(uri.toString());
-                                                          return super.shouldOverrideUrlLoading(view, uri);
-                                                      }
-                                                  }
-
-
-                        );
-
-                        mWebChromeClient = new WebChromeClient();
-                        web_view.setWebChromeClient(mWebChromeClient);
-                        web_view.getSettings().setJavaScriptEnabled(true);
-                        web_view.getSettings().setLoadsImagesAutomatically(true);
-                        web_view.getSettings().setDomStorageEnabled(true);
-                        web_view.getSettings().setLoadsImagesAutomatically(true);
-                        web_view.getSettings().setAllowFileAccess(true);
-                        web_view.getSettings().setBuiltInZoomControls(true);
-                        web_view.getSettings().setPluginState(WebSettings.PluginState.ON);
-                        web_view.setScrollBarStyle(View.SCROLLBARS_INSIDE_OVERLAY);
-                        pd.show();
-                        web_view.loadUrl(Url);
-                        web_view.requestFocus();
-                        web_view.setDownloadListener(new DownloadListener() {
-                            @Override
-                            public void onDownloadStart(String url, String userAgent, String contentDisposition, String mimetype, long contentLength) {
-                                Intent i = new Intent(Intent.ACTION_VIEW);
-                                i.setData(Uri.parse(url));
-                                startActivity(i);
-                            }
-                        });
-
+                        load(Url);
                     }
                 }
         );
     }
     @Override
     public  void onBackPressed() {
+        pd.dismiss();
         if (web_view.canGoBack()) {
             web_view.goBack();
+
         } else {
             super.onBackPressed();
         }
@@ -194,12 +112,68 @@ public class MainActivity extends AppCompatActivity {
         int id = item.getItemId();
 
         //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            return true;
+        if (id == R.id.action_refresh) {
+            Url = url.getText().toString();
+            load(Url);
+
         }
 
         return super.onOptionsItemSelected(item);
     }
 
+    public void load(String link){
 
+        web_view.setWebViewClient(new WebViewClient(){
+
+                                      @Override
+                                      public void onPageStarted(WebView view, String url, Bitmap favicon) {
+                                          super.onPageStarted(view, url, favicon);
+
+                                          System.out.println("your current url when webpage loading.." + url);
+                                      }
+
+                                      @Override
+                                      public void onPageFinished(WebView view, String url) {
+                                          pd.dismiss();
+                                          System.out.println("your current url when webpage loading.. finish" + url);
+                                          super.onPageFinished(view, url);
+                                      }
+
+                                      @Override
+                                      public void onLoadResource(WebView view, String url) {
+                                          // TODO Auto-generated method stub
+                                          super.onLoadResource(view, url);
+                                      }
+                                      public boolean shouldOverrideUrlLoading(WebView view, String uri) {
+                                          url.setText(uri.toString());
+                                          return super.shouldOverrideUrlLoading(view, uri);
+                                      }
+                                  }
+
+
+        );
+
+        mWebChromeClient = new WebChromeClient();
+        web_view.setWebChromeClient(mWebChromeClient);
+        web_view.getSettings().setJavaScriptEnabled(true);
+        web_view.getSettings().setLoadsImagesAutomatically(true);
+        web_view.getSettings().setDomStorageEnabled(true);
+        web_view.getSettings().setLoadsImagesAutomatically(true);
+        web_view.getSettings().setAllowFileAccess(true);
+        web_view.getSettings().setBuiltInZoomControls(true);
+        web_view.getSettings().setPluginState(WebSettings.PluginState.ON);
+        web_view.setScrollBarStyle(View.SCROLLBARS_INSIDE_OVERLAY);
+        pd.show();
+        web_view.loadUrl(link);
+        web_view.requestFocus();
+        web_view.setDownloadListener(new DownloadListener() {
+            @Override
+            public void onDownloadStart(String url, String userAgent, String contentDisposition, String mimetype, long contentLength) {
+                Intent i = new Intent(Intent.ACTION_VIEW);
+                i.setData(Uri.parse(url));
+                startActivity(i);
+            }
+        });
+
+    }
 }
