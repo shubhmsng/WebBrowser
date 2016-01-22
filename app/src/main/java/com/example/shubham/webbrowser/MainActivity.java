@@ -228,10 +228,10 @@ public class MainActivity extends AppCompatActivity {
 
                     Intent i = new Intent(Intent.ACTION_GET_CONTENT);
                     i.addCategory(Intent.CATEGORY_OPENABLE);
-                    i.setType("image/*");
+                    i.setType("*/*");
 
                     // Create file chooser intent
-                    Intent chooserIntent = Intent.createChooser(i, "Image Chooser");
+                    Intent chooserIntent = Intent.createChooser(i, "File Chooser");
 
                     // Set camera intent to file chooser
                     chooserIntent.putExtra(Intent.EXTRA_INITIAL_INTENTS
