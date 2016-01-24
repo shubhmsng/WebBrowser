@@ -58,7 +58,7 @@ public class MainActivity extends AppCompatActivity {
         url = (EditText)findViewById(R.id.url);
         web_view = (WebView)findViewById(R.id.webView);
         btn = (Button)findViewById(R.id.button);
-        pd = ProgressDialog.show(this, "Load", "Page Loading", true);
+        pd = ProgressDialog.show(this,"","Loading...", true, true);
         if( i == 0){
             load("http://google.com");
         }
