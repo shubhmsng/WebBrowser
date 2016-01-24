@@ -1,8 +1,11 @@
 package com.example.shubham.webbrowser;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.app.DownloadManager;
 import android.app.ProgressDialog;
+import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.res.Configuration;
 import android.graphics.Bitmap;
@@ -16,8 +19,10 @@ import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.Window;
 import android.webkit.ConsoleMessage;
 import android.webkit.DownloadListener;
+import android.webkit.JsResult;
 import android.webkit.ValueCallback;
 import android.webkit.WebChromeClient;
 import android.webkit.WebSettings;
@@ -26,7 +31,7 @@ import android.webkit.WebViewClient;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
-
+import java.lang.String;
 import java.io.File;
 import java.util.concurrent.ExecutionException;
 
@@ -73,7 +78,7 @@ public class MainActivity extends AppCompatActivity {
                         try {
                             System.out.println(u1[1]);
 
-                            if (u1[0].startsWith("http") || u1[0].startsWith("https")) {
+                            if (u1[0].startsWith("http") || u1[0].startsWith("https")||u1[0].startsWith("file://")||u1[0].startsWith("ftp://")) {
                                 Url = temp_url;
                             } else {
                                 Url = "http://" + temp_url;
@@ -88,11 +93,14 @@ public class MainActivity extends AppCompatActivity {
     }
     @Override
     public  void onBackPressed() {
-        pd.dismiss();
+
         if (web_view.canGoBack()) {
             web_view.goBack();
+            url.setText(web_view.getOriginalUrl());
+            pd.show();
 
         } else {
+
             super.onBackPressed();
         }
     }
@@ -143,7 +151,6 @@ public class MainActivity extends AppCompatActivity {
         web_view.getSettings().setBuiltInZoomControls(true);
         web_view.getSettings().setGeolocationEnabled(true);
         web_view.getSettings().setUseWideViewPort(true);
-
         web_view.getSettings().setPluginState(WebSettings.PluginState.ON);
         web_view.setScrollBarStyle(View.SCROLLBARS_INSIDE_OVERLAY);
         pd.show();
@@ -176,14 +183,18 @@ public class MainActivity extends AppCompatActivity {
 
                                       @Override
                                       public void onLoadResource(WebView view, String url) {
+
                                           // TODO Auto-generated method stub
                                           super.onLoadResource(view, url);
                                       }
 
                                       public boolean shouldOverrideUrlLoading(WebView view, String uri) {
+                                          Url = uri.toString();
                                           url.setText(uri.toString());
                                           return super.shouldOverrideUrlLoading(view, uri);
+
                                       }
+
 
                                   }
 
@@ -275,6 +286,7 @@ public class MainActivity extends AppCompatActivity {
                 //Log.d("androidruntime", "Show console messages, Used for debugging: " + message);
 
             }
+
         });   // End setWebChromeClient
     }
 
