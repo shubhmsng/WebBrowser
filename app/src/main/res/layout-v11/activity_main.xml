@@ -9,10 +9,9 @@
 
     <Button
         android:layout_width="40dp"
-        android:layout_height="30dp"
+        android:layout_height="20dp"
         android:text="GO"
         android:id="@+id/button"
-        android:textSize="25dp"
         android:textAlignment="center"
         android:textColor="#ffffff"
         android:background="#78a2ff"
@@ -24,7 +23,7 @@
 
     <EditText
         android:layout_width="245dp"
-        android:layout_height="30dp"
+        android:layout_height="20dp"
         android:id="@+id/url"
         android:background="#fff989"
         android:hint="Search or enter Address"
@@ -32,7 +31,7 @@
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true"
         android:contextClickable="true"
-        android:layout_marginBottom="10dp"
+        android:layout_marginBottom="1dp"
         android:inputType="textUri" />
     <WebView
         android:layout_width="match_parent"
@@ -42,5 +41,6 @@
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true"
         android:background="#77ccff"
-        android:layout_below="@+id/url" />
+        android:layout_below="@+id/url"
+        android:layout_gravity="center" />
 </RelativeLayout>
